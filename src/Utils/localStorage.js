@@ -1,4 +1,4 @@
-const saveContact = (key, item) => {
+const saveContacts = (key, item) => {
   try {
     if (key?.length > 0) {
       localStorage.setItem(key, JSON.stringify(item));
@@ -8,7 +8,7 @@ const saveContact = (key, item) => {
   }
 };
 
-const loadContact = (key) => {
+const loadContacts = (key) => {
   try {
     const isSaved = localStorage.getItem(key);
     return isSaved?.length > 0 ? JSON.parse(isSaved) : undefined;
@@ -17,4 +17,4 @@ const loadContact = (key) => {
   }
 };
 
-export { saveContact, loadContact };
+export { saveContacts, loadContacts };

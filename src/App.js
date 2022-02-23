@@ -1,34 +1,56 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { nanoid } from "nanoid";
 import ContactForm from "./components/ContactForm/ContactForm";
 import { ContactList } from "./components/ContactList/ContactList";
 import { Filter } from "./components/Filter/Filter";
 import { PhonebookMainTitleStyled, PhonebookTitleStyled } from "./App.styled";
-import { saveContact, loadContact } from "Utils/localStorage";
+import { saveContacts, loadContacts } from "Utils/localStorage";
+
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addContact,
+  deleteContact,
+  setFromLocalStorageContacts,
+  setFilterToRedux,
+} from "./redux/store";
 
 const LS_KEY = "saved-phonebook-contacts";
 
 export default function App() {
-  const [contacts, setContacts] = useState([]);
+  const dispatch = useDispatch();
+  const storedFilter = useSelector((state) => state.contacts.filter);
+  const contacts = useSelector((state) => state.contacts.items);
+
+  /* const [contacts, setContacts] = useState([]);
   const [filter, setFilter] = useState("");
+ */
 
   useEffect(() => {
-    const localSavedContacts = loadContact(LS_KEY);
+    const localSavedContacts = loadContacts(LS_KEY);
     if (localSavedContacts?.length > 0) {
-      setContacts(localSavedContacts);
+      dispatch({
+        type: setFromLocalStorageContacts.type,
+        payload: localSavedContacts,
+      });
+      /* setContacts(localSavedContacts); */
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
-    saveContact(LS_KEY, contacts?.length > 0 ? contacts : []);
+    saveContacts(LS_KEY, contacts?.length > 0 ? contacts : []);
   }, [contacts]);
 
   const onChangeFilter = (e) => {
-    setFilter(e.currentTarget.value);
+    const currentFilterText = e.currentTarget.value;
+    /* setFilter(e.currentTarget.value); */
+    dispatch({
+      type: setFilterToRedux.type,
+      payload: currentFilterText,
+    });
   };
 
   const getVisibleContacts = () => {
-    const normalizedFilter = filter.toLowerCase();
+    const normalizedFilter = storedFilter.toLowerCase();
     return contacts.filter((contact) => contact.name.toLowerCase().includes(normalizedFilter));
   };
 
@@ -44,14 +66,16 @@ export default function App() {
   const onAddContactSubmit = ({ name, number }) => {
     if (!isSaved(name)) return;
     const contact = { id: nanoid(), name, number };
-    setContacts((prevState) => [contact, ...prevState]);
+    /* setContacts((prevState) => [contact, ...prevState]); */
+    dispatch({ type: addContact.type, payload: contact });
   };
 
-  const deleteContact = (contactId) => {
-    setContacts((prevContacts) => {
-      return prevContacts.filter(({ id }) => id !== contactId);
-    });
+  const onDeleteContact = (contactId) => {
+    dispatch({ type: deleteContact.type, payload: contactId });
   };
+  /* setContacts((prevContacts) => {
+      return prevContacts.filter(({ id }) => id !== contactId);
+    }); */
 
   const filteredContacts = getVisibleContacts();
 
@@ -63,7 +87,7 @@ export default function App() {
       </div>
       <PhonebookTitleStyled>Contacts</PhonebookTitleStyled>
       <Filter onChange={onChangeFilter} />
-      <ContactList contacts={filteredContacts} onDeleteContact={deleteContact} />
+      <ContactList contacts={filteredContacts} onDeleteContact={onDeleteContact} />
     </div>
   );
 }
